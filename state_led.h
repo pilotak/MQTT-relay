@@ -1,9 +1,9 @@
 bool blink_enabled = false;
 volatile bool blink_state = false;
 
-#if defined(ESP8266)
+#if !defined(ESP32)
 void blinkState(){
-#elif defined(ESP32)
+#else
 void IRAM_ATTR blinkState(){
   xSemaphoreGiveFromISR(makeBlink, NULL);
 #endif
@@ -28,11 +28,11 @@ void blinkAliveTimeout(){
 
 void setupStatusLed(){
   pinMode(status_led_pin, OUTPUT);
-  #if defined(ESP8266)
+  #if !defined(ESP32)
     blinkTimer.attach_ms(BLINK_STATE_INTERVAL, blinkState);
     blinkAliveTimeoutTimer.attach_ms(BLINK_ALIVE_TIMEOUT, blinkAliveTimeout);
     blinkAliveTimer.attach_ms(BLINK_ALIVE_INTERVAL, blinkAlive);
-  #elif defined(ESP32)
+  #else
     makeBlink = xSemaphoreCreateBinary();
     blinkTimer = timerBegin(0, 80, true);
     timerAttachInterrupt(blinkTimer, &blinkState, true);

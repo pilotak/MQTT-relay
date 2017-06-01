@@ -43,7 +43,7 @@ void mqttCallback(const MQTT::Publish& pub) {
       Serial.println(size);
     #endif
     
-    #if defined(ESP8266)
+    #if !defined(ESP32)
       Serial.setDebugOutput(true);
       if (ESP.updateSketch(*pub.payload_stream(), size, true, false)) {
         #if defined(DEBUG)
@@ -105,7 +105,7 @@ bool mqttReconnect(){
     #endif
     unsigned long now = millis();
     
-    if (now - lastReconnectAttempt > CONNECTION_INTERVAL) {
+    if (now - lastReconnectAttempt > MQTT_CONNECTION_INTERVAL) {
       #if defined(DEBUG)
         Serial.print(F("Connecting to MQTT: "));
       #endif

@@ -17,7 +17,7 @@ bool set_relay(uint8_t relay, bool state){
     relay_state[relay] = state;
 
     if(remember_relay_state[relay]){
-      #if defined(ESP8266)
+      #if !defined(ESP32)
         EEPROM.write(relay, state);
         EEPROM.commit();
       #endif
@@ -41,9 +41,9 @@ void setupRelays(){
     delay(1); // give a time to pinMode
 
     if(remember_relay_state[i]) {
-      #if defined(ESP8266)
+      #if !defined(ESP32)
         set_relay(i, (bool)EEPROM.read(i));
-      #elif defined(ESP32)
+      #else
         set_relay(i, relay_inverted[i]);
       #endif
     }

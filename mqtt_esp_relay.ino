@@ -1,9 +1,9 @@
-#if defined(ESP8266)
+#if !defined(ESP32)
   #include <ESP8266WiFi.h>
   #include <ESP8266mDNS.h>
   #include <EEPROM.h>
   #include <Ticker.h>
-#elif defined (ESP32)
+#else
   #include <WiFi.h>
   #include <ESPmDNS.h>
   
@@ -16,12 +16,12 @@
 #include <ArduinoOTA.h>
 #include <PubSubClient.h>
 
-#include "setting.radio-relay.h"
+#include "setting.h"
 
 WiFiClient espClient;
 PubSubClient mqtt(espClient, MQTT_SERVER, MQTT_PORT);
 
-#if defined(ESP8266)
+#if !defined(ESP32)
 Ticker blinkTimer, tempTimer, blinkAliveTimer, blinkAliveTimeoutTimer;
 #endif
 
@@ -53,7 +53,7 @@ void setup() {
     Serial.println(DEVICE_NAME);
   #endif
 
-  #if defined(ESP8266)
+  #if !defined(ESP32)
   EEPROM.begin(NO_OF_RELAYS*2);
   #endif
 
