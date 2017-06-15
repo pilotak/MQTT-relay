@@ -7,6 +7,8 @@
 #define BLINK_ALIVE_INTERVAL 5000 // ms; when Wifi and MQTT not connected it will indicate in this interval that is alive
 #define BLINK_ALIVE_TIMEOUT 100 // ms; how long will be the flash light
 
+#define STATUS_LED_MODE 1 // 1 = when MQTT is not connected, led will flash, mqtt connected = led will light; 2 = only blinking that it is alive
+
 const uint8_t status_led_pin = 13;
 const bool status_led_inverted = true; // if true, LOW will make it light
 
@@ -24,6 +26,13 @@ const uint8_t temperature_pin = 2;
   
   #define TEMP_INTERVAL 10000 // ms // must be greater than DS18B20_WAIT_TIME if using DS18B20
 #endif
+
+
+/* ======= BUTTON =======*/
+#define HAS_BUTTON
+const uint8_t button_pin = 0;
+#define BUTTON_LONG_PRESS 2000 // ms
+#define BUTTON_DEBOUNCE_TIME 8 //ms
 
 
 /* ======= WIFI =======*/
@@ -46,6 +55,8 @@ IPAddress MQTT_SERVER(192, 168, 0, 100);
 #define MQTT_TEMP_TOPIC DEVICE_NAME "/temp" // will result ie. wifi-relay/temp* where aterisk is temp index, or without number in case of DHT22/11
 #define MQTT_HUMIDITY_TOPIC DEVICE_NAME "/humidity" // will result ie. wifi-relay/humidity
 #define MQTT_TEMP_SEARCH_TOPIC DEVICE_NAME "/temp-search" // will result ie. wifi-relay/temp-search
+#define MQTT_SIGNAL_TOPIC DEVICE_NAME "/signal" // will result ie. wifi-relay/signal
+#define MQTT_SIGNAL_TOPIC_STATE MQTT_SIGNAL_TOPIC "/state" // will result ie. wifi-relay/signal/state
 #define MQTT_STATE_ON "ON"
 #define MQTT_STATE_OFF "OFF"
 

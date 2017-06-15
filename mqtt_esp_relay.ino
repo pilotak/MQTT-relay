@@ -38,6 +38,10 @@ bool wifi_connected = false;
   #include "state_led.h"
 #endif
 
+#if defined(HAS_BUTTON)
+  #include "button.h"
+#endif
+
 #include "wifi.h"
 #include "mqtt.h"
 #include "relay.h"
@@ -62,6 +66,11 @@ void setup() {
   #if defined(HAS_STATUS_LED)
     setupStatusLed();
   #endif
+
+  #if defined(HAS_BUTTON)
+    pinMode(button_pin, INPUT);
+    attachInterrupt(button_pin, buttonFall, FALLING);
+  #endif
   
   #if defined(HAS_TEMP)
     setupTemp();
@@ -74,17 +83,16 @@ void setup() {
     tempTimer.attach_ms(interval, triggerRequestTemp);
   #endif
 
-  if(wifiReconnect()) {
-    mqtt.set_callback(mqttCallback);
-
-    #if defined(HAS_STATUS_LED)
-      blink_enabled = true;
-    #endif
-  }
-  else ESP.restart();
+  mqtt.set_callback(mqttCallback);
 }
 
 void loop() {
+  #if defined(HAS_BUTTON)
+    processButton();
+
+    if(!reading_button){
+  #endif
+  
   if(wifiReconnect()) {
     ArduinoOTA.handle();
     mqtt_connected = mqttReconnect();
@@ -100,6 +108,10 @@ void loop() {
       processTemp();
     }
     #endif
+  #endif
+
+  #if defined(HAS_BUTTON)
+    }
   #endif
 }
 

@@ -21,6 +21,39 @@ bool sendRelayState(uint8_t relay, bool state){
   return mqtt.publish(MQTT::Publish(topic, buffer).set_retain().set_qos(1));
 }
 
+bool sendSignalQuality(){
+  int dBm = WiFi.RSSI();
+  byte quality;
+  if(dBm <= -100) quality = 0;
+  else if(dBm >= -50) quality = 100;
+  else quality = 2 * (dBm + 100);
+
+  char buffer[4];
+  snprintf(buffer, 4, "%u", quality );
+
+  #if defined(DEBUG)
+    Serial.print("Signal quality: ");
+    Serial.println(buffer);
+  #endif
+
+  return mqtt.publish(MQTT::Publish(MQTT_SIGNAL_TOPIC_STATE, buffer).set_qos(1));
+}
+
+bool sendTempHumidity(float data, uint8_t type){
+  char buffer[10];
+  String topic;
+  
+  dtostrf(data, 7, 2, buffer);
+
+  #if defined(TEMP_DHT)
+    topic = (type == 0 ? MQTT_TEMP_TOPIC : MQTT_HUMIDITY_TOPIC);
+  #elif defined(TEMP_DS18B20)
+    topic = MQTT_TEMP_TOPIC;
+    topic.concat(type);
+  #endif
+  return mqtt.publish(MQTT::Publish(topic, buffer).set_qos(1));
+}
+
 void mqttCallback(const MQTT::Publish& pub) {
 
   String topic = pub.topic();
@@ -29,7 +62,8 @@ void mqttCallback(const MQTT::Publish& pub) {
     Serial.print("Message arrived [");
     Serial.print(topic);
     Serial.print("]: ");
-    Serial.println(pub.payload_string());
+    if(pub.payload_len() > 0) Serial.print(pub.payload_string());
+    Serial.println();
   #endif
 
   if(topic == MQTT_OTA_TOPIC){
@@ -67,6 +101,9 @@ void mqttCallback(const MQTT::Publish& pub) {
       sendRelayState(i, relay_state[i]);
     }
   }
+  else if(topic == MQTT_SIGNAL_TOPIC){
+    sendSignalQuality();
+  }
   #if defined(TEMP_DS18B20)
   else if(topic == MQTT_TEMP_SEARCH_TOPIC){
       setupTemp();
@@ -82,27 +119,13 @@ void mqttCallback(const MQTT::Publish& pub) {
   }
 }
 
-bool sendTempHumidity(float data, uint8_t type){
-  char buffer[10];
-  String topic;
-  
-  dtostrf(data, 7, 2, buffer);
-
-  #if defined(TEMP_DHT)
-    topic = (type == 0 ? MQTT_TEMP_TOPIC : MQTT_HUMIDITY_TOPIC);
-  #elif defined(TEMP_DS18B20)
-    topic = MQTT_TEMP_TOPIC;
-    topic.concat(type);
-  #endif
-  return mqtt.publish(MQTT::Publish(topic, buffer).set_qos(1));
-}
-
 bool mqttReconnect(){
   static unsigned long lastReconnectAttempt = 0;
    if (!mqtt.connected()) {
-    #if defined(HAS_STATUS_LED)
-      blink_enabled = true;
+    #if defined(HAS_STATUS_LED) && STATUS_LED_MODE == 1
+        blink_enabled = true;
     #endif
+    
     unsigned long now = millis();
     
     if (now - lastReconnectAttempt > MQTT_CONNECTION_INTERVAL) {
@@ -115,6 +138,7 @@ bool mqttReconnect(){
         mqtt.subscribe(MQTT::Subscribe()
           .add_topic(MQTT_OTA_TOPIC, 2)
           .add_topic(MQTT_STATUS_TOPIC, 1)
+          .add_topic(MQTT_SIGNAL_TOPIC, 1)
         );
 
         #if defined(TEMP_DS18B20)
@@ -142,9 +166,9 @@ bool mqttReconnect(){
     }
   }
   
-  #if defined(HAS_STATUS_LED)
-    blink_enabled = false;
-    digitalWrite(status_led_pin, (status_led_inverted ? LOW : HIGH));
+  #if defined(HAS_STATUS_LED) && STATUS_LED_MODE == 1
+      blink_enabled = false;
+      digitalWrite(status_led_pin, (status_led_inverted ? LOW : HIGH));
   #endif
   
   return true; 

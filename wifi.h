@@ -2,7 +2,7 @@ bool wifiReconnect(){
   if(WiFi.status() != WL_CONNECTED){
     wifi_connected = false;
     
-    #if defined(HAS_STATUS_LED)
+    #if defined(HAS_STATUS_LED) && STATUS_LED_MODE == 1
       digitalWrite(status_led_pin, (status_led_inverted ? HIGH : LOW));
     #endif
     
@@ -16,7 +16,12 @@ bool wifiReconnect(){
     unsigned long now = millis();
     
     while (WiFi.status() != WL_CONNECTED) {
+      #if defined(HAS_BUTTON)
+        if(reading_button || make_short_press) return false;
+      #endif
+      
       delay(250);
+      
       #if defined(DEBUG)
         Serial.print(F("."));
       #endif
