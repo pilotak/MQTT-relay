@@ -11,6 +11,9 @@ The main goals are:
 - Remember last state during restart
 - Clearly MQTT controlled, ready to be controlled by Home Automation server, like [HomeAssistant](https://home-assistant.io/)
 
+In order to compile, you need to install following library
+* PubSubClient (Imroy version) https://github.com/Imroy/pubsubclient
+
 Below are examples of HomeAssistant configuration
 
 ## Control relay
@@ -39,7 +42,7 @@ sensor:
     unit_of_measurement: "°C"
 ```
 
-## Temperature and humidity with DHT22
+## Temperature and humidity with DHT22/DHT11
 ```yaml
 sensor:
   - platform: mqtt
